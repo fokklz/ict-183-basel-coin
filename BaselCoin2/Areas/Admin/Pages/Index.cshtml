@@ -1,0 +1,51 @@
+﻿@page
+@model BaselCoin2.Areas.Admin.Pages.IndexModel
+@{
+    ViewData["Title"] = "Dashboard";
+    var currentTime = DateTime.Now.ToString("HH:mm:ss");
+}
+
+<div class="jumbotron">
+    <h1 class="display-4">Hello, @User.Identity?.Name!</h1>
+    <p class="lead">Welcome to your dashboard.</p>
+    <hr class="my-4">
+
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Current Users</h5>
+                    <p class="card-text">@Model.UserCount</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Current Time</h5>
+                    <p class="card-text" id="currentTime">@currentTime</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Issues</h5>
+                    <p class="card-text">0</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            function updateTime() {
+                $('#currentTime').text(new Date().toLocaleTimeString());
+            }
+            setInterval(updateTime, 1000);
+            updateTime();
+        });
+    </script>
+}

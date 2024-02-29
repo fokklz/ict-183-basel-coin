@@ -1,0 +1,10 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+<div class="text-center" style="padding-top: 100px">
+    <h1 class="display-4" style="margin-bottom: 1.2rem">Welcome</h1>
+    <a asp-page="/Member">Member Dashboard</a> &nbsp;&nbsp;|&nbsp;&nbsp; <a asp-area="Admin" asp-page="/Index">Admin Dashboard</a>
+</div>

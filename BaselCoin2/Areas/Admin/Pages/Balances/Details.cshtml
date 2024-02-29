@@ -1,0 +1,31 @@
+﻿@page
+@model BaselCoin2.Areas.Admin.Pages.Balances.DetailsModel
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h1>Details</h1>
+
+<div>
+    <h4>Balance</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Balance.User)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Balance.User.Id)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Balance.Amount)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Balance.Amount)
+        </dd>
+    </dl>
+</div>
+<div>
+    <a asp-page="./Edit" asp-route-id="@Model.Balance.Id">Edit</a> |
+    <a asp-page="./Index">Back to List</a>
+</div>
