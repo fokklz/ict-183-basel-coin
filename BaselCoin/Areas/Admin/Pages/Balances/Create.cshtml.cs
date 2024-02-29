@@ -12,6 +12,7 @@ using BaselCoin2.DTOs.Requests;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace BaselCoin2.Areas.Admin.Pages.Balances
 {
@@ -22,6 +23,11 @@ namespace BaselCoin2.Areas.Admin.Pages.Balances
         private readonly IMapper _mapper;
         private readonly UserManager<ApplicationUser> _userManager;
 
+        private void UpdateViewDataUserId()
+        {
+            ViewData["UserId"] = new SelectList(_context.Users, "Id", "UserName");
+        }
+
         public CreateModel(BaselCoin2.Data.ApplicationDBContext context, IMapper mapper, UserManager<ApplicationUser> userManager)
         {
             _context = context;
@@ -31,7 +37,7 @@ namespace BaselCoin2.Areas.Admin.Pages.Balances
 
         public IActionResult OnGet()
         {
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "UserName");
+            UpdateViewDataUserId();
             return Page();
         }
 
@@ -43,18 +49,47 @@ namespace BaselCoin2.Areas.Admin.Pages.Balances
         {
             if (ModelState.IsValid)
             {
-                _context.Balances.Add(_mapper.Map<Balance>(Balance));
-
-                var tryGetUser = await _userManager.GetUserAsync(User);
-                if (tryGetUser != null)
+                var newBalance = _mapper.Map<Balance>(Balance);
+                if (! await DoesBalanceForUserExist(newBalance.UserId))
                 {
-                    await _context.SaveChangesAsync(tryGetUser.Id);
-                }
 
-                return RedirectToPage("./Index");
+                    _context.Balances.Add(newBalance);
+
+                    var tryGetUser = await _userManager.GetUserAsync(User);
+                    if (tryGetUser != null)
+                    {
+                        try
+                        {
+                            await _context.SaveChangesAsync(tryGetUser.Id);
+                        }
+                        catch (DbUpdateException ex)
+                        {
+                            ModelState.AddModelError("", "Unable to save changes. " +
+                                                           "Try again, and if the problem persists, " +
+                                                                                      "see your system administrator.");
+
+                            UpdateViewDataUserId();
+
+                            return Page();
+                        }
+                    }
+
+                    return RedirectToPage("./Index");
+                }
+                else { 
+                        ModelState.AddModelError("", "A balance for this user already exists.");
+                               }
             }
 
+
+            UpdateViewDataUserId();
+
             return Page();
+        }
+
+        public async Task<bool> DoesBalanceForUserExist(string userId)
+        {
+            return await _context.Balances.AnyAsync(b => b.UserId == userId);
         }
     }
 }

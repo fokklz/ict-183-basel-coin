@@ -9,10 +9,8 @@ namespace BaselCoin2.Models
         [Key]
         public int Id { get; set; }
         public string UserId { get; set; }
+        public string Email { get; set; }
         public int? BalanceId { get; set; }
-
-        public virtual ApplicationUser User { get; set; }
-        public virtual Balance Balance { get; set; }
 
         [Precision(18, 5)]
         public decimal Amount { get; set; }
@@ -22,6 +20,7 @@ namespace BaselCoin2.Models
 
         [Precision(18, 5)]
         public decimal BalanceAfter { get; set; }
+        public string Owner { get; set; }
         public string Action { get; set; }
         public DateTime Date { get; set; } = DateTime.Now;
     }

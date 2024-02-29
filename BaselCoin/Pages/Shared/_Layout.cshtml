@@ -18,12 +18,13 @@
     <link rel="stylesheet" href="~/BaselCoin2.styles.css" asp-append-version="true" />
 </head>
 <body style="display: flex; flex-direction: column; height: calc(100vh - 60px)">
-    <div class="container">
+    <div class="container" style="align-self: stretch;">
         <header class="nav pt-3" style="align-items: center;">
             <a class="m-0 h1" asp-area="" asp-page="/Index" style="color: #222; text-decoration: none;">BaselCoin</a>
             <span style="flex: 1 1 auto;"></span>
             @if (User.Identity?.IsAuthenticated ?? false)
             {
+                <a asp-area="Identity" asp-page="/Account/Manage/Index" style="padding-right: 1.2rem">Settings</a>
                 <form method="post" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/", new { area = "" })" method="post" asp-antiforgery="true">
                     <button type="submit" class="btn btn-primary"  >Logout</button>
                 </form>
@@ -43,7 +44,7 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2024 - BaselCoin2 - <a asp-area="" asp-page="/Privacy">Privacy</a>
+            &copy; 2024 - BaselCoin - <a asp-area="" asp-page="/Privacy">Privacy</a>
         </div>
     </footer>
 
@@ -53,41 +54,46 @@
 
     @await RenderSectionAsync("Scripts", required: false)
 
-    <script>
-        var inactivityTime = function () {
-            var time;
-            window.onload = resetTimer;
-            // DOM Events
-            document.onmousemove = resetTimer;
-            document.onkeypress = resetTimer;
+    @if (User.Identity?.IsAuthenticated ?? false)
+    {
 
-            function logout() {
-                // Send a POST request to the logout action
-                fetch('/Identity/Account/Logout', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'RequestVerificationToken': "@GetAntiXsrfRequestToken()"
-                    },
-                    credentials: 'same-origin'
-                }).then(response => {
-                    if (response.ok) {
-                        window.location.href = '/';
-                    } else {
-                        console.error('Logout failed');
-                    }
-                }).catch(error => {
-                    console.error('Error:', error);
-                });
-            }
+        <script>
+            var inactivityTime = function () {
+                var time;
+                window.onload = resetTimer;
+                // DOM Events
+                document.onmousemove = resetTimer;
+                document.onkeypress = resetTimer;
 
-            function resetTimer() {
-                clearTimeout(time); // 5 minutes
-                time = setTimeout(logout, 300000);
-            }
-        };
+                function logout() {
+                    // Send a POST request to the logout action
+                    fetch('/Identity/Account/Logout', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'RequestVerificationToken': "@GetAntiXsrfRequestToken()"
+                        },
+                        credentials: 'same-origin'
+                    }).then(response => {
+                        if (response.ok) {
+                            window.location.href = '/';
+                        } else {
+                            console.error('Logout failed');
+                        }
+                    }).catch(error => {
+                        console.error('Error:', error);
+                    });
+                }
 
-        inactivityTime();
-    </script>
+                function resetTimer() {
+                    clearTimeout(time); // 5 minutes
+                    time = setTimeout(logout, 300000);
+                }
+            };
+
+            inactivityTime();
+        </script>
+    }
+
 </body>
 </html>

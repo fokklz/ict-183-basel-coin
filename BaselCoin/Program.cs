@@ -31,13 +31,14 @@ namespace BaselCoin2
 
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
             builder.Services.AddDbContext<ApplicationDBContext>(options =>
-                options.UseSqlServer(connectionString));
-
+                options.UseSqlServer(connectionString).UseLazyLoadingProxies());
+                
 
             builder.Services.ConfigureApplicationCookie(options =>
             {
                 options.SlidingExpiration = true;
                 options.ExpireTimeSpan = TimeSpan.FromMinutes(20);
+                options.Cookie.HttpOnly = true;
             });
 
             builder.Services.AddAutoMapper(typeof(Program).Assembly);
@@ -46,10 +47,10 @@ namespace BaselCoin2
             builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
             {
                 // Password settings
-                options.Password.RequireDigit = false;
+                options.Password.RequireDigit = true;
                 options.Password.RequiredLength = 8;
                 options.Password.RequireNonAlphanumeric = false;
-                options.Password.RequireUppercase = false;
+                options.Password.RequireUppercase = true;
                 options.Password.RequireLowercase = false;
                 options.Password.RequiredUniqueChars = 3;
 
@@ -79,7 +80,7 @@ namespace BaselCoin2
 
             app.UseMiddleware<SerilogEnrichingMiddleware>();
 
-            app.UseWhen(context => context.Request.Path.StartsWithSegments("/Admin"), appBuilder =>
+            app.UseWhen(context => context.Request.Path.StartsWithSegments("/admin"), appBuilder =>
             {
                 appBuilder.UseMiddleware<IpSecurityMiddleware>();
             });

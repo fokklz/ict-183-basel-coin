@@ -17,18 +17,23 @@ namespace BaselCoin2.Areas.Admin.Pages.Users
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ApplicationDBContext _context;  
 
+        private void addRolesToViewData()
+        {
+            var roles = _roleManager.Roles;
+            Roles = new SelectList(roles, "Name", "Name");
+        }
+
         public CreateModel(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, ApplicationDBContext context)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _context = context;
+
         }
 
         public IActionResult OnGet()
         {
-            var roles = _roleManager.Roles;
-            Roles = new SelectList(roles, "Name", "Name");
-
+            addRolesToViewData();
             return Page();
         }
 
@@ -43,21 +48,32 @@ namespace BaselCoin2.Areas.Admin.Pages.Users
             if (ModelState.IsValid)
             {
                 var user = new ApplicationUser { UserName = userToCreate.UserName, Email = userToCreate.Email };
-                await _userManager.CreateAsync(user, userToCreate.Password);
-                if (userToCreate.Role != null && userToCreate.Role.ToUpper() != "USER")
+                var result = await _userManager.CreateAsync(user, userToCreate.Password);
+                if (result.Succeeded)
                 {
                     await _userManager.AddToRoleAsync(user, userToCreate.Role);
-                }
 
-                await _context.AddAsync(new Balance { UserId = user.Id, Amount = 1000 });
-                var tryGetUser = await _userManager.GetUserAsync(User);
-                if (tryGetUser != null)
+
+                    var tryGetUser = await _userManager.GetUserAsync(User);
+                    if (tryGetUser != null)
+                    {
+                        _context.Add(new Balance { UserId = user.Id, Amount = 0 });
+                        await _context.SaveChangesAsync(tryGetUser.Id);
+                    }
+
+
+                    return RedirectToPage("./Index");
+                }
+                else
                 {
-                    await _context.SaveChangesAsync(tryGetUser.Id);
+                    foreach (var error in result.Errors)
+                    {
+                        ModelState.AddModelError(string.Empty, error.Description);
+                    }
                 }
-
-                return RedirectToPage("./Index");
             }
+
+            addRolesToViewData();
 
             return Page();
 

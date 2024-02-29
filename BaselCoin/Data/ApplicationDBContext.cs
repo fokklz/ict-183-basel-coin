@@ -24,16 +24,6 @@ namespace BaselCoin2.Data
                 .HasOne(p => p.User)
                 .WithMany()
                 .HasForeignKey(p => p.UserId);
-
-            modelBuilder.Entity<BalanceAudit>()
-                .HasOne(p => p.User)
-                .WithMany()
-                .HasForeignKey(p => p.UserId).OnDelete(DeleteBehavior.NoAction);
-
-            modelBuilder.Entity<BalanceAudit>()
-                .HasOne(p => p.Balance)
-                .WithMany()
-                .HasForeignKey(p => p.BalanceId).OnDelete(DeleteBehavior.NoAction);
         }
 
         /// <summary>
@@ -51,13 +41,13 @@ namespace BaselCoin2.Data
                 return await base.SaveChangesAsync(cancellationToken);
             }
 
-            var auditEntries = OnBeforeSaveChanges(userId);
+            var auditEntries = await OnBeforeSaveChanges(userId);
             var result = await base.SaveChangesAsync(cancellationToken);
             await OnAfterSaveChanges(auditEntries);
             return result;
         }
 
-        private List<BalanceAudit> OnBeforeSaveChanges(string userId)
+        private async Task<List<BalanceAudit>> OnBeforeSaveChanges(string userId)
         {
             ChangeTracker.DetectChanges();
             var auditEntries = new List<BalanceAudit>();
@@ -71,9 +61,13 @@ namespace BaselCoin2.Data
 
                     var amount = current - before;
 
+                    var email = (await Users.FirstOrDefaultAsync(u => u.Id == userId) ?? new ApplicationUser { Email = "Very SUS. Please contact your admin" }).Email;
+
                     var auditEntry = new BalanceAudit
                     {
                         UserId = userId,
+                        Owner = entry.Entity.UserId,
+                        Email = email ?? "Very SUS. Please contact your admin",
                         BalanceId = entry.State == EntityState.Added ? 0 : entry.State == EntityState.Deleted ? null : entry.Entity.Id,
                         Amount = amount,
                         BalanceBefore = before,
@@ -100,7 +94,7 @@ namespace BaselCoin2.Data
                 // For entries that were added, update the BalanceId with the generated ID.
                 if (auditEntry.BalanceId == 0)
                 {
-                    var balanceEntry = ChangeTracker.Entries<Balance>().FirstOrDefault(e => e.Entity.UserId == auditEntry.UserId);
+                    var balanceEntry = ChangeTracker.Entries<Balance>().FirstOrDefault(e => e.Entity.UserId == auditEntry.Owner);
                     if (balanceEntry != null)
                     {
                         auditEntry.BalanceId = balanceEntry.Entity.Id;

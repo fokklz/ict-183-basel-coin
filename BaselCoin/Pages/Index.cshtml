@@ -6,5 +6,9 @@
 
 <div class="text-center" style="padding-top: 100px">
     <h1 class="display-4" style="margin-bottom: 1.2rem">Welcome</h1>
-    <a asp-page="/Member">Member Dashboard</a> &nbsp;&nbsp;|&nbsp;&nbsp; <a asp-area="Admin" asp-page="/Index">Admin Dashboard</a>
+    @if (User.Identity?.IsAuthenticated ?? false)
+    {
+        <a asp-page="/Member">Member Dashboard</a> <p style="display: inline-block;">&nbsp;&nbsp;|&nbsp;&nbsp;</p>
+        <a asp-area="Admin" asp-page="/Index">Admin Dashboard</a>
+    }
 </div>
